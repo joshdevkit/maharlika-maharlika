@@ -11,12 +11,7 @@ class {{ class }}
      */
     public function before(User $user, string $ability): ?bool
     {
-        // Optionally check for super admin
-        // if ($user->isSuperAdmin()) {
-        //     return true;
-        // }
-
-        return null;
+        //
     }
 
     // Add your policy methods here

@@ -20,120 +20,189 @@ class MakePolicyCommand extends Command
             ->addArgument('name', InputArgument::REQUIRED, 'The name of the policy class')
             ->addOption('model', 'm', InputOption::VALUE_OPTIONAL, 'The model that the policy applies to')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Overwrite the policy if it already exists')
-            ->addOption('plain', 'p', InputOption::VALUE_NONE, 'Create a plain policy without predefined methods');
+            ->setHelp($this->getHelpText());
     }
 
     protected function handle(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
 
-        $name = $input->getArgument('name');
+        $name = $this->normalizePolicyName($input->getArgument('name'));
         $model = $input->getOption('model');
         $force = $input->getOption('force');
-        $plain = $input->getOption('plain');
+        
+        // If no model provided, create a plain policy
+        $isPlain = empty($model);
 
-        // Ensure name ends with "Policy"
-        if (!str_ends_with($name, 'Policy')) {
-            $name .= 'Policy';
+        $policyDir = $this->ensurePolicyDirectory($io);
+        $filepath = $policyDir . '/' . $name . '.php';
+
+        if ($this->shouldAbort($filepath, $force, $name, $io)) {
+            return self::FAILURE;
         }
 
-        // Determine the policy directory
+        $content = $this->generatePolicyContent($name, $model, $isPlain, $io);
+        
+        if ($content === null) {
+            return self::FAILURE;
+        }
+
+        file_put_contents($filepath, $content);
+
+        $io->success("Policy created successfully: app/Policies/{$name}.php");
+
+        $this->displayNextSteps($io, $model, $isPlain);
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Ensure policy name ends with "Policy".
+     */
+    protected function normalizePolicyName(string $name): string
+    {
+        return str_ends_with($name, 'Policy') ? $name : $name . 'Policy';
+    }
+
+    /**
+     * Ensure the policy directory exists.
+     */
+    protected function ensurePolicyDirectory(SymfonyStyle $io): string
+    {
         $policyDir = app()->basePath('app/Policies');
+        
         if (!is_dir($policyDir)) {
             mkdir($policyDir, 0755, true);
             $io->note("Created directory: app/Policies");
         }
 
-        // Build the full path
-        $filepath = $policyDir . '/' . $name . '.php';
+        return $policyDir;
+    }
 
-        // Check if file exists
+    /**
+     * Check if file exists and should abort.
+     */
+    protected function shouldAbort(string $filepath, bool $force, string $name, SymfonyStyle $io): bool
+    {
         if (file_exists($filepath) && !$force) {
             $io->error("Policy already exists: {$name}");
             $io->note("Use --force to overwrite");
-            return self::FAILURE;
+            return true;
         }
 
-        // Get the stub
-        $stubFilename = $plain ? 'policy-plain.stub' : 'policy.stub';
+        return false;
+    }
+
+    /**
+     * Generate the policy content from stub.
+     */
+    protected function generatePolicyContent(string $name, ?string $model, bool $isPlain, SymfonyStyle $io): ?string
+    {
+        $stubFilename = $isPlain ? 'policy-plain.stub' : 'policy.stub';
         $stubPath = Framework::stub($stubFilename);
-            
+        
         if (!file_exists($stubPath)) {
             $io->error("Stub file not found: {$stubPath}");
-            return self::FAILURE;
+            return null;
         }
 
         $stub = file_get_contents($stubPath);
 
-        // For plain policies, only replace namespace and class
-        if ($plain) {
-            $content = str_replace(
-                [
-                    '{{ namespace }}',
-                    '{{ class }}',
-                ],
-                [
-                    'App\\Policies',
-                    $name,
-                ],
-                $stub
-            );
-        } else {
-            // Determine model information
-            $modelName = $model;
-            $modelNamespace = 'App\\Models\\' . $modelName;
-            $modelVariable = $this->getModelVariable($modelName);
-
-            // If no model specified, try to infer from policy name
-            if (!$model) {
-                $modelName = str_replace('Policy', '', $name);
-                $modelNamespace = 'App\\Models\\' . $modelName;
-                $modelVariable = $this->getModelVariable($modelName);
-            }
-
-            // Replace placeholders
-            $content = str_replace(
-                [
-                    '{{ namespace }}',
-                    '{{ class }}',
-                    '{{ model }}',
-                    '{{ modelNamespace }}',
-                    '{{ modelVariable }}',
-                ],
-                [
-                    'App\\Policies',
-                    $name,
-                    $modelName,
-                    $modelNamespace,
-                    $modelVariable,
-                ],
-                $stub
-            );
+        if ($isPlain) {
+            return $this->replacePlainPlaceholders($stub, $name);
         }
 
-        // Write the file
-        file_put_contents($filepath, $content);
+        return $this->replaceModelPlaceholders($stub, $name, $model);
+    }
 
-        $io->success("Policy created successfully: app/Policies/{$name}.php");
+    /**
+     * Replace placeholders for plain policy.
+     */
+    protected function replacePlainPlaceholders(string $stub, string $name): string
+    {
+        return str_replace(
+            ['{{ namespace }}', '{{ class }}'],
+            ['App\\Policies', $name],
+            $stub
+        );
+    }
 
-        // Provide registration instructions (only for non-plain policies with model)
-        if (!$plain && $model) {
-            $modelName = $model;
+    /**
+     * Replace placeholders for model-based policy.
+     */
+    protected function replaceModelPlaceholders(string $stub, string $name, string $model): string
+    {
+        $modelName = $model ?: str_replace('Policy', '', $name);
+        $modelNamespace = 'App\\Models\\' . $modelName;
+        $modelVariable = lcfirst($modelName);
+
+        return str_replace(
+            [
+                '{{ namespace }}',
+                '{{ class }}',
+                '{{ model }}',
+                '{{ modelNamespace }}',
+                '{{ modelVariable }}',
+            ],
+            [
+                'App\\Policies',
+                $name,
+                $modelName,
+                $modelNamespace,
+                $modelVariable,
+            ],
+            $stub
+        );
+    }
+
+    /**
+     * Display next steps for the user.
+     */
+    protected function displayNextSteps(SymfonyStyle $io, ?string $model, bool $isPlain): void
+    {
+        if (!$isPlain && $model) {
             $io->section('Next Steps');
             $io->text([
                 "Register your policy in app/Providers/AuthorizationServiceProvider.php:",
                 "Register the provider into bootstrapper/providers.php",
             ]);
         }
-
-        return self::SUCCESS;
     }
 
     /**
-     * Convert model name to variable name.
+     * Get the help text for the command.
      */
-    protected function getModelVariable(string $modelName): string
+    protected function getHelpText(): string
     {
-        return lcfirst($modelName);
+        return <<<'HELP'
+The <info>make:policy</info> command creates a new policy class.
+
+<comment>Usage:</comment>
+  <info>php maharlika make:policy UserPolicy</info>
+  <info>php maharlika make:policy PostPolicy --model=Post</info>
+  <info>php maharlika make:policy AdminPolicy</info>
+
+<comment>Options:</comment>
+  <info>-m, --model=MODEL</info>    Specify the model that the policy applies to.
+                          If provided, creates a policy with CRUD methods.
+                          If omitted, creates a plain policy with just a before() method.
+
+  <info>-f, --force</info>          Overwrite the policy if it already exists.
+
+<comment>Examples:</comment>
+  # Create a plain policy (no model specified)
+  <info>php maharlika make:policy AdminPolicy</info>
+
+  # Create a model-based policy with CRUD methods
+  <info>php maharlika make:policy PostPolicy --model=Post</info>
+
+  # Create a policy and overwrite if exists
+  <info>php maharlika make:policy UserPolicy -m User --force</info>
+
+<comment>Note:</comment>
+  - Policy names will automatically have "Policy" appended if not provided
+  - Plain policies include a before() method for authorization hooks
+  - Model-based policies include viewAny, view, create, update, delete, restore, and forceDelete methods
+HELP;
     }
 }
