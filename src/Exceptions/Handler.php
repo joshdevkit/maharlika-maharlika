@@ -14,9 +14,7 @@ class Handler
             return $this->handleValidationException($request, $e);
         }
 
-        \Spatie\Ignition\Ignition::make()
-            ->shouldDisplayException(!app()->isProduction())
-            ->register();
+        Ignition::make("flare")->register();
     }
 
     protected function handleValidationException($request, ValidationException $e)
