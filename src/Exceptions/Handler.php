@@ -4,6 +4,7 @@ namespace Maharlika\Exceptions;
 
 use Maharlika\Validation\ValidationException;
 use Maharlika\Http\RedirectResponse;
+use Spatie\Ignition\Ignition;
 
 class Handler
 {
@@ -12,8 +13,8 @@ class Handler
         if ($e instanceof ValidationException) {
             return $this->handleValidationException($request, $e);
         }
-        
-        \Spatie\Ignition\Ignition::make()->register();
+
+        Ignition::make()->register();
     }
 
     protected function handleValidationException($request, ValidationException $e)
