@@ -2,8 +2,6 @@
 
 namespace Maharlika\Auth;
 
-use Maharlika\Auth\Access\Gate as AccessGate;
-use Maharlika\Contracts\Auth\Access\Gate;
 use Maharlika\Http\Middlewares\AuthMiddleware;
 use Maharlika\Http\Middlewares\GuestMiddleware;
 use Maharlika\Http\Request;
