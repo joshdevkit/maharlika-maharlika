@@ -1,0 +1,10 @@
+<?php
+
+namespace App\Models;
+
+use Maharlika\Database\FluentORM\Model;
+
+class {{ class }} extends Model
+{
+    protected $fillable = [];
+}

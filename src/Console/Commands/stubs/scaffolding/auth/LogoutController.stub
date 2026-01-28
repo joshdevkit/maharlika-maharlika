@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Controllers\Auth;
+
+use Maharlika\Routing\Attributes\HttpPost;
+use Maharlika\Routing\Attributes\Name;
+use Maharlika\Routing\Controller;
+
+class LogoutController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
+    #[HttpPost('/logout')]
+    #[Name('logout')]
+    public function __invoke()
+    {
+        auth()->logout();
+        session()->invalidate();
+        session()->regenerateToken();
+
+        return redirect()
+            ->to(router('login'))
+            ->with('success', 'You have been logged out.');
+    }
+}

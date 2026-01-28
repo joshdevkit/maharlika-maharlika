@@ -1,0 +1,88 @@
+@extends('layouts.app')
+
+@section('title', 'Dashboard')
+
+@section('content')
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Dashboard</h1>
+                <form method="POST" action="{{ router('logout') }}">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-danger">Logout</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        </div>
+    @endif
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-user"></i> Profile
+                    </h5>
+                    <p class="card-text">
+                        <strong>Name:</strong> {{ Auth::user()->name }}<br>
+                        <strong>Email:</strong> {{ Auth::user()->email }}
+                    </p>
+                    <a href="#" class="btn btn-primary btn-sm">Edit Profile</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-chart-line"></i> Statistics
+                    </h5>
+                    <p class="card-text">
+                        <strong>Member since:</strong><br>
+                        {{ date('F d, Y', strtotime(Auth::user()->created_at)) }}
+                    </p>
+                    <a href="#" class="btn btn-info btn-sm">View Stats</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-cog"></i> Settings
+                    </h5>
+                    <p class="card-text">
+                        Manage your account settings and preferences.
+                    </p>
+                    <a href="#" class="btn btn-secondary btn-sm">Settings</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Welcome!</h5>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Hello, {{ Auth::user()->name }}!</p>
+                    <p>Welcome to your dashboard. This is a protected area that requires authentication.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

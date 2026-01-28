@@ -1,0 +1,25 @@
+<?php
+
+namespace App\Controllers\Auth;
+
+use Maharlika\Routing\Attributes\HttpGet;
+use Maharlika\Routing\Attributes\Name;
+use Maharlika\Routing\Controller;
+use Maharlika\Routing\Attributes\Authenticated;
+
+
+// you can use the attribute #[Authenticated] and remove constructor
+class DashboardController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware('auth'); // you can add verified here too.
+    }
+
+    #[HttpGet('/dashboard')]
+    #[Name('dashboard')]
+    public function __invoke()
+    {
+        return view('dashboard');
+    }
+}

@@ -1,0 +1,18 @@
+<?php
+
+namespace App\Middlewares;
+use Closure;
+use Maharlika\Contracts\Http\Middleware;
+use Maharlika\Contracts\Http\RequestInterface;
+use Maharlika\Contracts\Http\ResponseInterface;
+
+class {{ class }} implements Middleware
+{
+    public function handle(RequestInterface $request, Closure $next): ResponseInterface
+    {
+
+        //middleware logic here...
+
+        return $next($request);
+    }
+}

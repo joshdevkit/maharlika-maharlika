@@ -1,0 +1,67 @@
+<?php
+
+namespace App\Mail;
+
+use Maharlika\Mail\Mailable;
+use Maharlika\Mail\Mailable\Content;
+use Maharlika\Mail\Mailable\Envelope;
+use Maharlika\Support\Traits\Queueable;
+use Maharlika\Support\Traits\SerializesModels;
+
+class {{ class }} extends Mailable
+{
+    use Queueable, SerializesModels;
+
+    /**
+     * Public properties are automatically available in the view.
+     */
+    // Example property
+    // public string $name;
+
+    /**
+     * Create a new message instance.
+     */
+    public function __construct(/* add constructor parameters here */)
+    {
+        // Assign constructor parameters to public properties
+        // $this->name = $name;
+    }
+
+    /**
+     * Get the message envelope.
+     */
+    public function envelope(): Envelope
+    {
+        return new Envelope(
+            subject: 'Your Subject Here',
+            from: 'noreply@example.com',
+            replyTo: 'support@example.com',
+        );
+    }
+
+    /**
+     * Get the message content definition.
+     */
+    public function content(): Content
+    {
+        return new Content(
+            view: 'emails.example', // replace with your Blade view
+            with: [
+                // 'name' => $this->name,
+                // any other variables to pass to view
+            ],
+        );
+    }
+
+    /**
+     * Get the attachments for the message.
+     *
+     * @return array<int, \Maharlika\Mail\Mailable\Attachment>
+     */
+    public function attachments(): array
+    {
+        return [
+            //
+        ];
+    }
+}

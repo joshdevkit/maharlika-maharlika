@@ -1,0 +1,60 @@
+{
+    "name": "maharlika/maharlika",
+    "description": "Maharlikas PHP framework's heart",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Maharlika\\": "src/",
+            "Test\\": "test/"
+        },
+        "files": [
+            "src/Support/helpers.php",
+            "src/Support/function.php",
+            "src/Support/CollectionHelpers.php",
+            "src/Routing/helpers.php",
+            "src/Http/helpers.php",
+            "src/Filesystem/functions.php",
+            "src/View/view_helpers.php",
+            "src/Mail/mailer_helpers.php",
+            "src/Queue/queue_helpers.php",
+            "src/Broadcasting/helpers.php",
+            "src/JsRender/render_helper.php",
+            "src/Socialite/socialite.php",
+            "src/Scheduling/helpers.php"
+        ]
+    },
+    "require": {
+        "php": "^8.1",
+        "psr/container": "^2.0",
+        "symfony/var-dumper": "^7.3",
+        "vlucas/phpdotenv": "^5.6",
+        "filp/whoops": "^2.18",
+        "ramsey/uuid": "^4.9",
+        "nesbot/carbon": "^3.10",
+        "symfony/uid": "^7.3",
+        "fakerphp/faker": "^1.24",
+        "symfony/rate-limiter": "^7.3",
+        "symfony/cache": "^7.3",
+        "symfony/http-foundation": "^7.3",
+        "symfony/error-handler": "^7.3",
+        "monolog/monolog": "^3.9",
+        "doctrine/inflector": "^2.1",
+        "voku/portable-ascii": "^2.0",
+        "symfony/mailer": "^7.3",
+        "symfony/console": "^7.3",
+        "pusher/pusher-php-server": "^7.2",
+        "dompdf/dompdf": "^3.1",
+        "spatie/ignition": "v2.x-dev"
+    },
+    "authors": [
+        {
+            "name": "Joshua Mendoza Pacho"
+        }
+    ],
+    "prefer-stable": true,
+    "minimum-stability": "dev",
+    "require-dev": {
+        "phpunit/phpunit": "^12.5"
+    }
+}

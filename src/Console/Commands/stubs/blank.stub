@@ -1,0 +1,18 @@
+<?php
+
+use Maharlika\Database\Schema\Migration;
+use Maharlika\Database\Schema\Blueprint;
+use Maharlika\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        // Write your migration logic here
+    }
+
+    public function down(): void
+    {
+        // Reverse your migration logic here
+    }
+};

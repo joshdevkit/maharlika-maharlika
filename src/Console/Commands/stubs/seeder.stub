@@ -1,0 +1,25 @@
+<?php
+
+namespace Database\Seeders;
+
+use Maharlika\Database\Factory\Seeder;
+
+class {{ class }} extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        $this->info("Running {{ class }}...");
+
+        // Use factories to create records:
+        // UserFactory::new()->count(10)->create();
+        // $this->success("Created 10 users");
+
+        // Or call other seeders:
+        // $this->call([
+        //     AnotherSeeder::class,
+        // ]);
+    }
+}

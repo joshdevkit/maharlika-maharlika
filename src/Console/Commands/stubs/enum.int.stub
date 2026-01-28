@@ -1,0 +1,53 @@
+<?php
+
+namespace {{ namespace }};
+
+enum {{ class }}: int
+{
+    case PENDING = 0;
+    case ACTIVE = 1;
+    case INACTIVE = 2;
+
+    /**
+     * Get all enum values as an array
+     */
+    public static function values(): array
+    {
+        return array_column(self::cases(), 'value');
+    }
+
+    /**
+     * Get all enum names as an array
+     */
+    public static function names(): array
+    {
+        return array_column(self::cases(), 'name');
+    }
+
+    /**
+     * Try to create an enum from a value
+     */
+    public static function tryFromValue(mixed $value): ?self
+    {
+        return self::tryFrom($value);
+    }
+
+    /**
+     * Get the label for the enum case
+     */
+    public function label(): string
+    {
+        return match($this) {
+            self::PENDING => 'Pending',
+            self::ACTIVE => 'Active',
+            self::INACTIVE => 'Inactive',
+        };
+    }
+}
+```
+
+## 3. Create the App/Enums Directory
+
+If it doesn't exist, create:
+```
+app/Enums/

@@ -1,0 +1,24 @@
+<?php
+
+namespace Database\Factory;
+
+use Maharlika\Database\Factory\Factory;
+use App\Models\{{ model }};
+
+/**
+ * @extends Factory<App\Models\{{ model }}>
+ */
+class {{ class }} extends Factory
+{
+    /**
+     * Define the model's default state.
+     */
+    public function definition(): array
+    {
+        return [
+            // 'name' => $this->faker->name(),
+            // 'email' => $this->faker->unique()->safeEmail(),
+            // ...
+        ];
+    }
+}

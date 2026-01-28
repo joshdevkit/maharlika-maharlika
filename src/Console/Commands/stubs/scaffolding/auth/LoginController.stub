@@ -1,0 +1,44 @@
+<?php
+
+namespace App\Controllers\Auth;
+
+use Maharlika\Routing\Attributes\HttpGet;
+use Maharlika\Routing\Attributes\HttpPost;
+use Maharlika\Routing\Attributes\Name;
+use Maharlika\Routing\Controller;
+use Maharlika\Http\Request;
+
+class LoginController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware('guest');
+    }
+
+    #[HttpGet('/login')]
+    #[Name('login')]
+    public function showLoginForm()
+    {
+        return view('auth.login');
+    }
+
+    #[HttpPost('/login')]
+    #[Name('login.attempt')]
+    public function login(Request $request)
+    {
+        // you can use $request->validate() too
+        $credentials = request()->validate([
+            'email' => 'required|email|exists:users,email',
+            'password' => 'required',
+        ]);
+
+        if (auth()->attempt($credentials)) {
+            session()->regenerate();
+            return redirect()->toAction('dashboard')->with('success', 'Welcome back, '.auth()->user()->name.'!');
+        }
+
+        return redirect()
+            ->back()
+            ->with('error', 'Invalid credentials');
+    }
+}

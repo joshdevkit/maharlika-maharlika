@@ -1,0 +1,65 @@
+<?php
+
+namespace {{ namespace }};
+
+use App\Models\User;
+use {{ modelNamespace }};
+
+class {{ class }}
+{
+    /**
+     * Determine if the user can view any {{ modelVariable }}s.
+     */
+    public function viewAny(User $user): bool
+    {
+        return true;
+    }
+
+    /**
+     * Determine if the user can view the {{ modelVariable }}.
+     */
+    public function view(User $user, {{ model }} ${{ modelVariable }}): bool
+    {
+        return true;
+    }
+
+    /**
+     * Determine if the user can create {{ modelVariable }}s.
+     */
+    public function create(User $user): bool
+    {
+        return true;
+    }
+
+    /**
+     * Determine if the user can update the {{ modelVariable }}.
+     */
+    public function update(User $user, {{ model }} ${{ modelVariable }}): bool
+    {
+        return $user->id === ${{ modelVariable }}->user_id;
+    }
+
+    /**
+     * Determine if the user can delete the {{ modelVariable }}.
+     */
+    public function delete(User $user, {{ model }} ${{ modelVariable }}): bool
+    {
+        return $user->id === ${{ modelVariable }}->user_id;
+    }
+
+    /**
+     * Determine if the user can restore the {{ modelVariable }}.
+     */
+    public function restore(User $user, {{ model }} ${{ modelVariable }}): bool
+    {
+        return $user->id === ${{ modelVariable }}->user_id;
+    }
+
+    /**
+     * Determine if the user can permanently delete the {{ modelVariable }}.
+     */
+    public function forceDelete(User $user, {{ model }} ${{ modelVariable }}): bool
+    {
+        return $user->id === ${{ modelVariable }}->user_id;
+    }
+}

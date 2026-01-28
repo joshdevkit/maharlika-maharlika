@@ -1,0 +1,21 @@
+<?php
+
+namespace App\Forms;
+
+use Maharlika\Http\FormRequest;
+
+class {{ class }} extends FormRequest
+{
+
+    public function authorize(): bool
+    {
+        return false;
+    }
+
+    public function rules(): array
+    {
+        return [
+            // 
+        ];
+    }
+}

@@ -1,0 +1,22 @@
+<?php
+
+use Maharlika\Database\Schema\Migration;
+use Maharlika\Database\Schema\Blueprint;
+use Maharlika\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('{{ table }}', function (Blueprint $table) {
+            // Add your column modifications here
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('{{ table }}', function (Blueprint $table) {
+            // Reverse modifications here
+        });
+    }
+};

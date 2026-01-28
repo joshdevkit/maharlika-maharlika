@@ -1,0 +1,33 @@
+<?php
+
+namespace App\Providers;
+
+use Maharlika\Providers\ServiceProvider;
+
+class InertiaServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services
+     */
+    public function register(): void
+    {
+        //
+    }
+
+
+    public function boot(): void
+    {
+        $jsrender = app('jsrender');
+        $jsrender->share('auth', $jsrender->lazy(function () {
+            $authData = ['user' => null];
+            $user = auth()->user();
+            $authData['user'] = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'avatar' => $user->avatar ?? '',
+            ];
+            return $authData;
+        }));
+    }
+}

@@ -1,0 +1,50 @@
+<?php
+
+namespace {{ namespace }};
+
+use Maharlika\Routing\Attributes\ApiRoute;
+use Maharlika\Routing\Controller;{{ model_import }}
+
+#[ApiRoute(prefix:"{{ prefix }}")]
+class {{ class }} extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        {{ index_body }}
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store()
+    {
+        {{ store_body }}
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show({{ show_parameter }})
+    {
+        {{ show_body }}
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update({{ update_parameter }})
+    {
+        {{ update_body }}
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy({{ destroy_parameter }})
+    {
+        {{ destroy_body }}
+    }
+}

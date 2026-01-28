@@ -1,0 +1,13 @@
+<?php
+
+namespace App\View\Components;
+
+use Maharlika\View\Component;
+
+class {{className}} extends Component
+{
+    public function render()
+    {
+        return view('components.{{viewName}}');
+    }
+}

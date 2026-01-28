@@ -1,0 +1,26 @@
+<?php
+
+namespace App\Notifications;
+
+use Maharlika\Notifications\Notification;
+
+class {{ class }} extends Notification
+{
+    /**
+     * Get the notification's delivery channels.
+     */
+    public function via($notifiable): array
+    {
+        return ['database']; //default db you can change to as array if both mail and db as ['mail','database']
+    }
+
+    /**
+     * Get the array representation (for database).
+     */
+    public function toArray($notifiable): array
+    {
+        return [
+            //
+        ];
+    }
+}

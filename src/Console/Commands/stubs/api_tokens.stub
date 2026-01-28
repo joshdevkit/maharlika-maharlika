@@ -1,0 +1,30 @@
+<?php
+
+
+use Maharlika\Database\Schema\Migration;
+use Maharlika\Database\Schema\Blueprint;
+use Maharlika\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('api_tokens', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('name');
+            $table->string('token', 64)->unique();
+            $table->json('abilities')->nullable();
+            $table->timestamp('last_used_at')->nullable();
+            $table->timestamp('expires_at')->nullable();
+            $table->timestamps();
+
+            $table->index(['user_id', 'token']);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('api_tokens');
+    }
+};

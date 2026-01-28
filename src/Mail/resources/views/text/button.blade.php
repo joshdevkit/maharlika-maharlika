@@ -1,0 +1,3 @@
+{{ strtoupper($slot) }}
+
+{{ $url }}

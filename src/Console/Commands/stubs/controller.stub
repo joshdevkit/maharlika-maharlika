@@ -1,0 +1,10 @@
+<?php
+
+namespace {{ namespace }};
+
+use Maharlika\Routing\Controller;
+
+class {{ class }} extends Controller
+{
+    //
+}
