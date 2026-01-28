@@ -28,10 +28,6 @@ interface ApplicationInterface extends ContainerInterface
      */
     public function handle(RequestInterface $request): ResponseInterface;
 
-    /**
-     * Register a service provider
-     */
-    public function register(ServiceProviderInterface $provider): void;
 
     /**
      * Determine if the application has been bootstrapped
