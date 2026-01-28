@@ -14,8 +14,6 @@ use Maharlika\Support\Traits\Macroable;
 
 class Builder implements QueryBuilderInterface
 {
-    use Macroable;
-
     protected ConnectionInterface $connection;
     protected Grammar $grammar;
     protected SchemaValidator $validator;
@@ -1658,7 +1656,11 @@ class Builder implements QueryBuilderInterface
             return $this->dynamicWhere($method, $parameters, 'orWhere');
         }
 
-        return null;
+        throw new \BadMethodCallException(sprintf(
+            'Call to undefined method %s::%s()',
+            static::class,
+            $method
+        ));
     }
 
     protected function dynamicWhere(string $method, array $parameters, string $type): self

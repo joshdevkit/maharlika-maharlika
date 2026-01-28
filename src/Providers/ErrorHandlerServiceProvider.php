@@ -13,7 +13,7 @@ class ErrorHandlerServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $debug = app()->hasDebugModeEnabled();
+        $debug = config('app.debug');
         if ($debug) {
             $this->registerIgnition();
         } else {

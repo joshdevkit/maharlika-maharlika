@@ -8,6 +8,7 @@ use Maharlika\Database\Collection;
 use Exception;
 use Maharlika\Database\FluentORM\Model;
 use Maharlika\Pagination\Paginator;
+use Maharlika\Support\Traits\Macroable;
 
 class Builder
 {
@@ -1342,6 +1343,13 @@ class Builder
             return $this->callScope($method, $parameters);
         }
 
+        if (!method_exists($this->query, $method)) {
+            throw new \BadMethodCallException(sprintf(
+                'Call to undefined method %s::%s()',
+                static::class,
+                $method
+            ));
+        }
         // Forward to query builder
         $result = $this->query->$method(...$parameters);
 

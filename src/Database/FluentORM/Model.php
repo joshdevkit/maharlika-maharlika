@@ -9,14 +9,12 @@ use Maharlika\Exceptions\MassAssignmentException;
 use Maharlika\Database\Collection;
 use Maharlika\Facades\Log;
 use Maharlika\Support\Str;
-use Maharlika\Support\Traits\Macroable;
 
 use function Maharlika\Support\enum_value;
 
 abstract class Model implements \JsonSerializable, Arrayable
 {
-    use Macroable,
-        \Maharlika\Database\Traits\HasRelationships,
+    use \Maharlika\Database\Traits\HasRelationships,
         \Maharlika\Database\Traits\HasAttributes,
         \Maharlika\Database\Traits\HasCasting,
         \Maharlika\Database\Traits\HasTimestamps,
@@ -1035,7 +1033,7 @@ abstract class Model implements \JsonSerializable, Arrayable
         $query = static::newQuery();
 
         $result = $query->$method(...$parameters);
-
+        
         return $result;
     }
 }

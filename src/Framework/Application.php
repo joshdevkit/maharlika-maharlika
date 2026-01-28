@@ -213,7 +213,7 @@ class Application extends Container implements ApplicationInterface
 
     public function hasDebugModeEnabled(): bool
     {
-        return (bool) ($_ENV['APP_DEBUG'] ?? $_SERVER['APP_DEBUG'] ?? false);
+        return config('app.debug');
     }
 
     protected function registerMaharlikaServices(): void
