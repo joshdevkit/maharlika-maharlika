@@ -31,8 +31,6 @@ class Container implements ContainerInterface
     protected ?string $currentScope = null;
     protected bool $compiled = false;
     protected array $compiledData = [];
-    protected array $serviceProviders = [];
-    protected array $bootedProviders = [];
     
     // Singleton instance
     protected static ?Container $instance = null;
@@ -51,92 +49,6 @@ class Container implements ContainerInterface
     public static function getInstance(): ?Container
     {
         return static::$instance;
-    }
-
-    /**
-     * Register a service provider with the container.
-     */
-    public function register(string|object $provider, bool $force = false): object
-    {
-        // If provider is a string, instantiate it
-        if (is_string($provider)) {
-            $provider = new $provider($this);
-        }
-
-        $providerClass = get_class($provider);
-
-        // Check if already registered
-        if (isset($this->serviceProviders[$providerClass]) && !$force) {
-            return $this->serviceProviders[$providerClass];
-        }
-
-        // Store the provider instance
-        $this->serviceProviders[$providerClass] = $provider;
-
-        // Call the register method if it exists
-        if (method_exists($provider, 'register')) {
-            $provider->register();
-        }
-
-        // Mark as loaded
-        $this->loadedProviders[$providerClass] = true;
-
-        return $provider;
-    }
-
-    /**
-     * Boot all registered service providers.
-     */
-    public function boot(): void
-    {
-        foreach ($this->serviceProviders as $providerClass => $provider) {
-            $this->bootProvider($provider);
-        }
-    }
-
-    /**
-     * Boot a specific service provider.
-     */
-    protected function bootProvider(object $provider): void
-    {
-        $providerClass = get_class($provider);
-
-        // Check if already booted
-        if (isset($this->bootedProviders[$providerClass])) {
-            return;
-        }
-
-        // Call the boot method if it exists
-        if (method_exists($provider, 'boot')) {
-            $this->call([$provider, 'boot']);
-        }
-
-        // Mark as booted
-        $this->bootedProviders[$providerClass] = true;
-    }
-
-    /**
-     * Get all registered service providers.
-     */
-    public function getProviders(): array
-    {
-        return $this->serviceProviders;
-    }
-
-    /**
-     * Check if a provider is registered.
-     */
-    public function hasProvider(string $providerClass): bool
-    {
-        return isset($this->serviceProviders[$providerClass]);
-    }
-
-    /**
-     * Get a registered provider instance.
-     */
-    public function getProvider(string $providerClass): ?object
-    {
-        return $this->serviceProviders[$providerClass] ?? null;
     }
 
     public function bind(string $abstract, mixed $concrete = null, bool $shared = false): void
@@ -355,7 +267,10 @@ class Container implements ContainerInterface
             return;
         }
 
-        $this->register($provider);
+        $providerInstance = new $provider($this);
+        $providerInstance->register();
+
+        $this->loadedProviders[$provider] = true;
         unset($this->deferredServices[$abstract]);
     }
 
@@ -910,8 +825,6 @@ class Container implements ContainerInterface
             'deferred' => count($this->deferredServices),
             'loaded_providers' => count($this->loadedProviders),
             'scoped_instances' => array_sum(array_map('count', $this->scopedInstances)),
-            'service_providers' => count($this->serviceProviders),
-            'booted_providers' => count($this->bootedProviders),
         ];
     }
 
@@ -932,8 +845,6 @@ class Container implements ContainerInterface
         $this->loadedProviders = [];
         $this->extenders = [];
         $this->methodBindings = [];
-        $this->serviceProviders = [];
-        $this->bootedProviders = [];
         $this->currentScope = null;
         $this->compiled = false;
         $this->compiledData = [];

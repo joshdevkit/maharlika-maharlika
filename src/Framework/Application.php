@@ -4,11 +4,11 @@ namespace Maharlika\Framework;
 
 use Maharlika\Auth\ApiAuthServiceProvider;
 use Maharlika\Auth\AuthServiceProvider;
-use Maharlika\Auth\GateServiceProvider;
 use Maharlika\Broadcasting\BroadcastServiceProvider;
 use Maharlika\Contracts\ApplicationInterface;
 use Maharlika\Contracts\Http\RequestInterface;
 use Maharlika\Contracts\Http\ResponseInterface;
+use Maharlika\Contracts\ServiceProviderInterface;
 use Maharlika\Container\Container;
 use Maharlika\Database\Capsule;
 use Maharlika\Database\DatabaseServiceProvider;
@@ -19,41 +19,44 @@ use Maharlika\Http\Request;
 use Maharlika\Http\Server;
 use Maharlika\JsRender\JsRenderServiceProvider;
 use Maharlika\Mail\Mailer;
-use Maharlika\Mail\MailServiceProvider;
-use Maharlika\Pagination\PaginationServiceProvider;
 use Maharlika\Pipeline\Pipeline;
 use Maharlika\Providers\CacheServiceProvider;
 use Maharlika\Providers\LogServiceProvider;
 use Maharlika\Providers\AppKeyServiceProvider;
 use Maharlika\Providers\CorsServiceProvider;
 use Maharlika\Providers\EncryptionServiceProvider;
-use Maharlika\Providers\ErrorHandlerServiceProvider;
 use Maharlika\Providers\HttpServiceProvider;
-use Maharlika\Providers\PublisherServiceProvider;
 use Maharlika\Providers\RequestServiceProvider;
 use Maharlika\Providers\StorageServiceProvider;
+use Maharlika\Providers\PublisherServiceProvider;
 use Maharlika\RateLimit\RateLimitServiceProvider;
 use Maharlika\Routing\Redirector;
 use Maharlika\Routing\Router;
 use Maharlika\Routing\RoutingServiceProvider;
-use Maharlika\Scheduling\ScheduleServiceProvider;
 use Maharlika\Session\SessionServiceProvider;
 use Maharlika\Socialite\SocialiteServiceProvider;
 use Maharlika\Support\AliasLoader;
-use Maharlika\Translation\TranslationServiceProvider;
+use Maharlika\Translation\TranslationServiceProvider; // NEW
 use Maharlika\Validation\ValidationServiceProvider;
 use Maharlika\View\ViewServiceProvider;
 use Dotenv\Dotenv;
+use Maharlika\Auth\GateServiceProvider;
+use Maharlika\Mail\MailServiceProvider;
+use Maharlika\Pagination\PaginationServiceProvider;
+use Maharlika\Providers\ErrorHandlerServiceProvider;
+use Maharlika\Scheduling\ScheduleServiceProvider;
 
 use function Maharlika\Filesystem\join_paths;
 
 class Application extends Container implements ApplicationInterface
 {
-    const VERSION = '1.0.0';
+    const VERSION = '1.1.3';
 
     protected string $locale = 'en';
     protected string $basePath;
     protected string $environment = 'production';
+    protected array $serviceProviders = [];
+    protected array $registeredProviders = [];
     protected array $bootstrapProviders = [];
     protected bool $booted = false;
     protected bool $bootstrapped = false;
@@ -64,58 +67,34 @@ class Application extends Container implements ApplicationInterface
         $this->basePath = rtrim($basePath, '\/');
 
         $this->registerBaseBindings();
+
+
         $this->loadEnvironment();
         $this->detectEnvironment();
-        $this->registerCoreServices();
+        $this->registerMaharlikaServices();
         $this->loadConfiguration();
-        $this->registerCoreServiceProviders();
+
+
+        $this->registerBaseServiceProviders();
         $this->bootstrap();
     }
 
-    /**
-     * Register base bindings into the container.
-     */
     protected function registerBaseBindings(): void
     {
         static::setInstance($this);
 
         $this->instance(ApplicationInterface::class, $this);
+        $this->instance('path', $this->path());
         $this->instance('app', $this);
         $this->instance('container', $this);
-        $this->instance('path', $this->path());
         $this->instance('server', new Server($_SERVER));
     }
 
-    /**
-     * Register core framework services.
-     */
-    protected function registerCoreServices(): void
-    {
-        $services = [
-            'config'    => fn() => new \Maharlika\Config\Repository(),
-            'router'    => fn($c) => new Router($c, $c->get('config')->get('routing', [])),
-            'request'   => fn() => Request::capture(),
-            'url'       => fn($c) => new \Maharlika\Routing\UrlGenerator($c->get('router'), $c->get('request')),
-            'pipeline'  => fn($c) => new Pipeline($c),
-            'schema'    => fn() => new Schema(Capsule::connection()),
-            'migrator'  => fn($c) => new \Maharlika\Database\Schema\MigrationRunner($c->basePath('database/migrations')),
-            'redirect'  => fn($c) => new Redirector($c->get('url')),
-            'mailer'    => fn($c) => new Mailer($c->get('config')->get('mail', [])),
-            'queue'     => fn($c) => new \Maharlika\Queue\Queue($c->get('config')->get('queue', [])),
-        ];
-
-        foreach ($services as $alias => $resolver) {
-            $this->singleton($alias, $resolver);
-        }
-    }
-
-    /**
-     * Register core service providers.
-     */
-    protected function registerCoreServiceProviders(): void
+    protected function registerBaseServiceProviders(): void
     {
         $providers = [
             ErrorHandlerServiceProvider::class,
+            GateServiceProvider::class,
             LogServiceProvider::class,
             DatabaseServiceProvider::class,
             CacheServiceProvider::class,
@@ -125,7 +104,6 @@ class Application extends Container implements ApplicationInterface
             RateLimitServiceProvider::class,
             SessionServiceProvider::class,
             AuthServiceProvider::class,
-            GateServiceProvider::class,
             CorsServiceProvider::class,
             ApiAuthServiceProvider::class,
             HashServiceProvider::class,
@@ -147,19 +125,13 @@ class Application extends Container implements ApplicationInterface
         ];
 
         foreach ($providers as $provider) {
-            $this->register($provider);
+            $this->register(new $provider());
         }
     }
 
-    /**
-     * Bootstrap the application.
-     */
+
     public function bootstrap(): ApplicationInterface
     {
-        if ($this->bootstrapped) {
-            return $this;
-        }
-
         $this->bind(RequestInterface::class, Request::class);
         $this->instance('appPath', $this->basePath . '/app');
         $this->instance('app_version', self::VERSION);
@@ -168,31 +140,23 @@ class Application extends Container implements ApplicationInterface
         $this->loadBootstrapProviders();
         $this->registerBootstrapProviders();
         $this->configureRouter();
+
         $this->initializeKernel();
-        
-        // Boot all registered providers
+
         $this->boot();
 
         $this->addMiddleware('middleware.cors', -100);
-        $this->registerAliases();
 
-        $this->bootstrapped = true;
+        $this->addAliasToView();
 
         return $this;
     }
-
-    /**
-     * Initialize the HTTP kernel.
-     */
     protected function initializeKernel(): void
     {
         $this->kernel = new HttpKernel($this);
         $this->singleton(HttpKernel::class, fn() => $this->kernel);
     }
 
-    /**
-     * Load environment variables from .env file.
-     */
     protected function loadEnvironment(): void
     {
         if (!file_exists($this->basePath . '/.env')) {
@@ -203,9 +167,6 @@ class Application extends Container implements ApplicationInterface
         $dotenv->load();
     }
 
-    /**
-     * Detect and set the application environment.
-     */
     protected function detectEnvironment(): void
     {
         $this->environment = $_ENV['APP_ENV'] ?? $_SERVER['APP_ENV'] ?? 'production';
@@ -218,148 +179,6 @@ class Application extends Container implements ApplicationInterface
         if (!defined('APP_DEBUG')) {
             define('APP_DEBUG', $this->hasDebugModeEnabled());
         }
-    }
-
-    /**
-     * Load configuration files.
-     */
-    protected function loadConfiguration(): void
-    {
-        $config = $this->get('config');
-
-        $configPath = $this->basePath('config');
-        if (is_dir($configPath)) {
-            $config->loadDirectory($configPath);
-        }
-
-        $this->locale = $config->get('app.locale', 'en');
-    }
-
-    /**
-     * Load bootstrap providers from configuration.
-     */
-    protected function loadBootstrapProviders(): void
-    {
-        $providersFile = $this->basePath . '/bootstrapper/providers.php';
-
-        if (!file_exists($providersFile)) {
-            return;
-        }
-
-        $providers = require $providersFile;
-
-        if (is_array($providers)) {
-            $this->bootstrapProviders = $providers;
-        }
-    }
-
-    /**
-     * Register bootstrap providers.
-     */
-    protected function registerBootstrapProviders(): void
-    {
-        foreach ($this->bootstrapProviders as $providerClass) {
-            if (class_exists($providerClass)) {
-                $this->register($providerClass);
-            }
-        }
-    }
-
-    /**
-     * Configure the router with auto-discovery settings.
-     */
-    protected function configureRouter(): void
-    {
-        $router = $this->get('router');
-        $config = $this->get('config');
-
-        $routingConfig = $config->get('routing', []);
-
-        if (!($routingConfig['auto_discovery']['enabled'] ?? true)) {
-            return;
-        }
-
-        $namespaces = $routingConfig['namespaces'] ?? $this->getDefaultControllerNamespaces();
-
-        foreach ($namespaces as $namespace => $directory) {
-            if (is_dir($directory)) {
-                $router->addControllerNamespace($namespace, $directory);
-            }
-        }
-
-        // Only eager load in production when not in debug mode
-        if (($routingConfig['auto_discovery']['eager'] ?? false) && 
-            $this->isProduction() && 
-            !$this->hasDebugModeEnabled()) {
-            $router->discoverRoutes();
-        }
-    }
-
-    /**
-     * Get default controller namespaces.
-     */
-    protected function getDefaultControllerNamespaces(): array
-    {
-        return [
-            'App\\Controllers' => $this->basePath . app_path('Controllers'),
-        ];
-    }
-
-    /**
-     * Register class aliases.
-     */
-    protected function registerAliases(): void
-    {
-        $aliases = [
-            'Auth'    => \Maharlika\Facades\Auth::class,
-            'Gate'    => \Maharlika\Facades\Gate::class,
-            'View'    => \Maharlika\Facades\View::class,
-            'DB'      => \Maharlika\Facades\DB::class,
-            'Hash'    => \Maharlika\Facades\Hash::class,
-            'Str'     => \Maharlika\Support\Str::class,
-            'Route'   => \Maharlika\Facades\Route::class,
-            'Log'     => \Maharlika\Facades\Log::class,
-            'Mail'    => \Maharlika\Facades\Mail::class,
-            'Cache'   => \Maharlika\Facades\Cache::class,
-            'Storage' => \Maharlika\Facades\Storage::class,
-            'Carbon'  => \Maharlika\Support\Carbon::class,
-            'Lang'    => \Maharlika\Facades\Lang::class,
-        ];
-
-        $loader = AliasLoader::getInstance($aliases);
-        $loader->register();
-    }
-
-    /**
-     * Boot all service providers.
-     */
-    public function boot(): void
-    {
-        if ($this->booted) {
-            return;
-        }
-
-        parent::boot();
-
-        $this->booted = true;
-    }
-
-    /**
-     * Handle an incoming HTTP request.
-     */
-    public function handle(RequestInterface $request): ResponseInterface
-    {
-        return $this->kernel->handle($request);
-    }
-
-    /**
-     * Run the application.
-     */
-    public function run(): void
-    {
-        $request = $this->get('request');
-        $response = $this->handle($request);
-        $response->send();
     }
 
     public function environment(): string
@@ -397,6 +216,110 @@ class Application extends Container implements ApplicationInterface
         return (bool) env('APP_DEBUG', false);
     }
 
+    protected function registerMaharlikaServices(): void
+    {
+        $this->bindSingletonFrameworkServices();
+    }
+
+    protected function registerBootstrapProviders(): void
+    {
+        foreach ($this->bootstrapProviders as $providerClass) {
+            if (class_exists($providerClass)) {
+                $provider = new $providerClass();
+                $this->register($provider);
+            }
+        }
+    }
+
+    protected function loadConfiguration(): void
+    {
+        $config = $this->get('config');
+
+        // Load config directory
+        $configPath = $this->basePath('config');
+        if (is_dir($configPath)) {
+            $config->loadDirectory($configPath);
+        }
+
+        $this->locale = $config->get('app.locale', 'en');
+    }
+
+    protected function loadBootstrapProviders(): void
+    {
+        $providersFile = $this->basePath . '/bootstrapper/providers.php';
+
+        if (file_exists($providersFile)) {
+            $providers = require $providersFile;
+
+            if (is_array($providers)) {
+                $this->bootstrapProviders = $providers;
+            }
+        }
+    }
+
+    protected function bindSingletonFrameworkServices(): self
+    {
+        $services = [
+            'config'    => fn() => new \Maharlika\Config\Repository(),
+            'router'    => fn($c) => new Router($c, $c->get('config')->get('routing', [])),
+            'request'   => fn() => Request::capture(),
+            'url'       => fn($c) => new \Maharlika\Routing\UrlGenerator($c->get('router'), $c->get('request')),
+            'pipeline'  => fn($c) => new Pipeline($c),
+            'schema'    => fn() => new Schema(Capsule::connection()),
+            'migrator'  => fn($c) => new \Maharlika\Database\Schema\MigrationRunner($c->basePath('database/migrations')),
+            'redirect'  => fn($c) => new Redirector($c->get('url')),
+            'mailer'    => fn($c) => new Mailer($c->get('config')->get('mail', [])),
+            'queue'     => fn($c) => new \Maharlika\Queue\Queue($c->get('config')->get('queue', [])),
+        ];
+
+        foreach ($services as $alias => $resolver) {
+            $this->singleton($alias, $resolver);
+        }
+
+        return $this;
+    }
+
+    protected function configureRouter(): void
+    {
+        $router = $this->get('router');
+        $config = $this->get('config');
+
+        $routingConfig = $config->get('routing', []);
+
+        if (!($routingConfig['auto_discovery']['enabled'] ?? true)) {
+            return;
+        }
+
+        $namespaces = $routingConfig['namespaces'] ?? $this->getDefaultControllerNamespaces();
+
+        foreach ($namespaces as $namespace => $directory) {
+            if (is_dir($directory)) {
+                $router->addControllerNamespace($namespace, $directory);
+            }
+        }
+
+        // FIXED: Don't eagerly discover routes in development
+        // Let lazy loading handle it on first request
+        if ($routingConfig['auto_discovery']['eager'] ?? false) {
+            // Only eager load in production or when not in debug mode
+            if ($this->isProduction() && !$this->hasDebugModeEnabled()) {
+                $router->discoverRoutes();
+            }
+        }
+    }
+
+    protected function getDefaultControllerNamespaces(): array
+    {
+        return [
+            'App\\Controllers' => $this->basePath . app_path('Controllers'),
+        ];
+    }
+
+    public function getContainer(): static
+    {
+        return $this;
+    }
+
     public function path(string $path = ''): string
     {
         $base = $this->has('appPath')
@@ -406,17 +329,84 @@ class Application extends Container implements ApplicationInterface
         return $this->joinPaths($base, $path);
     }
 
-    public function basePath(string $path = ''): string
-    {
-        return $this->joinPaths($this->basePath, $path);
-    }
-
-    public function joinPaths(string $basePath, string $path = ''): string
+    public function joinPaths($basePath, $path = ''): string
     {
         return join_paths($basePath, $path);
     }
 
+    public function basePath($path = ''): string
+    {
+        return $this->joinPaths($this->basePath, $path);
+    }
 
+    public function register(ServiceProviderInterface $provider): void
+    {
+        $providerClass = get_class($provider);
+
+        if (isset($this->registeredProviders[$providerClass])) {
+            throw new \RuntimeException(
+                "Service provider [{$providerClass}] is already registered."
+            );
+        }
+
+        $provider->setContainer($this);
+        $provider->register();
+
+        $this->serviceProviders[] = $provider;
+        $this->registeredProviders[$providerClass] = true;
+    }
+
+    public function boot(): void
+    {
+        if ($this->booted) {
+            return;
+        }
+
+        foreach ($this->serviceProviders as $provider) {
+            $provider->boot();
+        }
+
+        $this->booted = true;
+    }
+
+    public function addAliasToView(): void
+    {
+        $aliases = [
+            'Auth' => \Maharlika\Facades\Auth::class,
+            'Gate' => \Maharlika\Facades\Gate::class,
+            'View' => \Maharlika\Facades\View::class,
+            'DB' => \Maharlika\Facades\DB::class,
+            'Hash' => \Maharlika\Facades\Hash::class,
+            'Str' => \Maharlika\Support\Str::class,
+            'Route' => \Maharlika\Facades\Route::class,
+            'Log' => \Maharlika\Facades\Log::class,
+            'Mail' => \Maharlika\Facades\Mail::class,
+            'Cache' => \Maharlika\Facades\Cache::class,
+            'Storage' => \Maharlika\Facades\Storage::class,
+            'Carbon' => \Maharlika\Support\Carbon::class,
+            'Lang' => \Maharlika\Facades\Lang::class,
+        ];
+
+        $loader = AliasLoader::getInstance($aliases);
+        $loader->register();
+    }
+
+    public function handle(RequestInterface $request): ResponseInterface
+    {
+        return $this->kernel->handle($request);
+    }
+
+    public function hasBeenBootstrapped(): bool
+    {
+        return $this->bootstrapped;
+    }
+
+    public function getKernel(): HttpKernel
+    {
+        return $this->kernel;
+    }
+
+    // Middleware proxy methods for convenience
     public function registerMiddleware(array $middleware): self
     {
         foreach ($middleware as $alias => $class) {
@@ -497,21 +487,6 @@ class Application extends Container implements ApplicationInterface
     }
 
 
-    public function getContainer(): static
-    {
-        return $this;
-    }
-
-    public function getKernel(): HttpKernel
-    {
-        return $this->kernel;
-    }
-
-    public function hasBeenBootstrapped(): bool
-    {
-        return $this->bootstrapped;
-    }
-
     public function getApplicationVersion(): string
     {
         return self::VERSION;
@@ -527,25 +502,26 @@ class Application extends Container implements ApplicationInterface
         $this->locale = $locale;
     }
 
+    public function getRegisteredProviders(): array
+    {
+        return $this->serviceProviders;
+    }
+
+    public function getRegisteredProviderClasses(): array
+    {
+        return array_keys($this->registeredProviders);
+    }
+
     public function getBootstrapProviders(): array
     {
         return $this->bootstrapProviders;
     }
 
-    /**
-     * Get all registered service providers.
-     */
-    public function getRegisteredProviders(): array
+    public function run(): void
     {
-        return $this->getProviders();
-    }
-
-    /**
-     * Get registered provider class names.
-     */
-    public function getRegisteredProviderClasses(): array
-    {
-        return array_keys($this->getProviders());
+        $request = $this->get('request');
+        $response = $this->handle($request);
+        $response->send();
     }
 
     public function __get(string $name)

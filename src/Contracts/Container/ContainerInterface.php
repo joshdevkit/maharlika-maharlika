@@ -46,11 +46,6 @@ interface ContainerInterface extends PsrContainerInterface
      */
     public function alias(string $abstract, string $alias): void;
 
-        /**
-     * Register a service provider with the container.
-     */
-    public function register(string|object $provider, bool $force = false): object;
-
     /**
      * Determine if a given string is an alias
      */

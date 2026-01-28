@@ -2,7 +2,8 @@
 
 namespace Maharlika\Auth;
 
-use Maharlika\Contracts\Auth\AuthManagerContract;
+use Maharlika\Auth\Access\Gate as AccessGate;
+use Maharlika\Contracts\Auth\Access\Gate;
 use Maharlika\Http\Middlewares\AuthMiddleware;
 use Maharlika\Http\Middlewares\GuestMiddleware;
 use Maharlika\Http\Request;
@@ -10,13 +11,6 @@ use Maharlika\Providers\ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
 {
-    /**
-     * The policy mappings for the application.
-     * 
-     * @var array<class-string, class-string>
-     */
-    protected array $policies = [];
-
     public function register(): void
     {
         // Register Auth Manager
@@ -28,19 +22,20 @@ class AuthServiceProvider extends ServiceProvider
             return new AuthManager($session, $model);
         });
 
-        // Register aliases for Auth Manager
+        // Register aliases for Auth Manager (combine into one call to avoid duplicates)
         $this->app->alias('auth', AuthManager::class);
-        $this->app->alias(AuthManager::class, AuthManagerContract::class);
+        $this->app->alias(AuthManager::class, \Maharlika\Contracts\Auth\AuthManagerContract::class);
 
         // Register Auth Middleware
         $this->app->singleton('middleware.auth', function ($c) {
             $auth = $c->get('auth');
             $config = $c->get('config');
-            $redirectTo = $config->get('auth.redirect.login', '/auth/login');
+            $redirectTo = $config->get('auth.redirect.login', '/login');
 
             return new AuthMiddleware($auth, $redirectTo);
         });
 
+        // Register alias for Auth Middleware (single alias only)
         $this->app->alias('middleware.auth', AuthMiddleware::class);
 
         // Register Guest Middleware
@@ -52,51 +47,23 @@ class AuthServiceProvider extends ServiceProvider
             return new GuestMiddleware($auth, $redirectTo);
         });
 
+        // Register alias for Guest Middleware (single alias only)
         $this->app->alias('middleware.guest', GuestMiddleware::class);
 
         // Register Password Broker
         $this->app->singleton('password.broker', function ($app) {
             return new \Maharlika\Auth\Passwords\PasswordBroker();
         });
-
-        // Register Gate Service Provider
-        $this->app->register(GateServiceProvider::class);
     }
 
     public function boot(): void
     {
         Request::setResolver(function (?string $guard = null) {
-            $auth = app(AuthManagerContract::class);
+            $auth = app('auth');
             if ($guard !== null && method_exists($auth, 'guard')) {
                 return $auth->guard($guard)->user();
             }
             return $auth->user();
         });
-
-        // Register manually defined policies
-        $this->registerPolicies();
-    }
-
-    /**
-     * Register the application's policies.
-     */
-    protected function registerPolicies(): void
-    {
-        $gate = $this->app->get('gate');
-
-        foreach ($this->policies() as $model => $policy) {
-            $gate->policy($model, $policy);
-        }
-    }
-
-    /**
-     * Get the policies defined in this provider.
-     * Override this method to manually register policies.
-     *
-     * @return array<class-string, class-string>
-     */
-    protected function policies(): array
-    {
-        return $this->policies;
     }
 }
