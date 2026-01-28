@@ -4,7 +4,6 @@ namespace Maharlika\Exceptions;
 
 use Maharlika\Validation\ValidationException;
 use Maharlika\Http\RedirectResponse;
-use Spatie\Ignition\Ignition;
 
 class Handler
 {
@@ -14,7 +13,7 @@ class Handler
             return $this->handleValidationException($request, $e);
         }
 
-        Ignition::make("flare")->register();
+        throw $e;
     }
 
     protected function handleValidationException($request, ValidationException $e)

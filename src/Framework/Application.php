@@ -22,7 +22,6 @@ use Maharlika\Mail\Mailer;
 use Maharlika\Pipeline\Pipeline;
 use Maharlika\Providers\CacheServiceProvider;
 use Maharlika\Providers\LogServiceProvider;
-use Maharlika\Providers\SymfonyErrorHandlerServiceProvider;
 use Maharlika\Providers\AppKeyServiceProvider;
 use Maharlika\Providers\CorsServiceProvider;
 use Maharlika\Providers\EncryptionServiceProvider;
@@ -44,6 +43,7 @@ use Dotenv\Dotenv;
 use Maharlika\Auth\GateServiceProvider;
 use Maharlika\Mail\MailServiceProvider;
 use Maharlika\Pagination\PaginationServiceProvider;
+use Maharlika\Providers\ErrorHandlerServiceProvider;
 use Maharlika\Scheduling\ScheduleServiceProvider;
 
 use function Maharlika\Filesystem\join_paths;
@@ -93,6 +93,7 @@ class Application extends Container implements ApplicationInterface
     protected function registerBaseServiceProviders(): void
     {
         $providers = [
+            ErrorHandlerServiceProvider::class,
             GateServiceProvider::class,
             LogServiceProvider::class,
             DatabaseServiceProvider::class,

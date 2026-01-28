@@ -1,12 +1,10 @@
 <?php
 
 namespace Maharlika\Providers;
-
 use Maharlika\Exceptions\ProductionErrorRenderer;
-use Symfony\Component\ErrorHandler\Debug;
-use Symfony\Component\ErrorHandler\ErrorHandler;
+use Spatie\Ignition\Ignition;
 
-class SymfonyErrorHandlerServiceProvider extends ServiceProvider
+class ErrorHandlerServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
@@ -15,22 +13,29 @@ class SymfonyErrorHandlerServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $debug = filter_var(env('APP_DEBUG', false), FILTER_VALIDATE_BOOLEAN);
-
+        $debug = app()->hasDebugModeEnabled();
         if ($debug) {
-            Debug::enable();
+            $this->registerIgnition();
         } else {
-             ErrorHandler::register();
             set_exception_handler(function (\Throwable $e) {
                 if (PHP_SAPI === 'cli') {
                     fwrite(STDERR, "Error: " . $e->getMessage() . PHP_EOL);
                     fwrite(STDERR, $e->getTraceAsString() . PHP_EOL);
                     exit(1);
                 }
-
                 ProductionErrorRenderer::render();
             });
-            ErrorHandler::register();
+        }
+    }
+
+    protected function registerIgnition(): void
+    {
+        try {
+            $ignition = Ignition::make('flare');
+            $ignition->register();
+        } catch (\Throwable $e) {
+            // If Ignition fails to initialize, fall back to basic error handling
+            // This prevents the application from crashing if Ignition has issues
         }
     }
 }
