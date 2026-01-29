@@ -16,7 +16,7 @@ class TemplateEvaluator
     {
         // Use provided cache path or default to storage/views
         $this->cachePath = $cachePath ?? app()->basePath('storage/views');
-        
+
         // Ensure cache directory exists
         if (!is_dir($this->cachePath)) {
             mkdir($this->cachePath, 0755, true);
@@ -76,16 +76,17 @@ class TemplateEvaluator
         };
 
         extract($data, EXTR_SKIP);
+
+        // Write compiled template to cache file ONCE, before the component evaluation
+        $cacheFile = $this->getCacheFilePath($compiled);
+        file_put_contents($cacheFile, $compiled);
+
         // the template in the context of that component so $this refers to it
         if (isset($data['component']) && is_object($data['component'])) {
             // Use a closure to bind the component as $this
-            $evaluator = function() use ($compiled, $data, $__buildClass, $__buildStyle, $__sections, $__currentSection, $__extends, $errors) {
+            $evaluator = function () use ($cacheFile, $data, $__buildClass, $__buildStyle, $__sections, $__currentSection, $__extends, $errors) {
                 // Extract all data into this scope
                 extract($data, EXTR_SKIP);
-                
-                // Write compiled template to cache file
-                $cacheFile = $this->getCacheFilePath($compiled);
-                file_put_contents($cacheFile, $compiled);
 
                 ob_start();
 
@@ -98,17 +99,12 @@ class TemplateEvaluator
 
                 return ob_get_clean();
             };
-            
+
             // Bind the closure to the component instance so $this works
             $boundEvaluator = \Closure::bind($evaluator, $data['component'], get_class($data['component']));
             $output = ltrim($boundEvaluator());
-            
         } else {
             // No component, evaluate normally
-            // Write compiled template to cache file
-            $cacheFile = $this->getCacheFilePath($compiled);
-            file_put_contents($cacheFile, $compiled);
-
             ob_start();
 
             try {
@@ -162,7 +158,7 @@ class TemplateEvaluator
         }
 
         $files = glob($this->cachePath . '/cache_*.php');
-        
+
         foreach ($files as $file) {
             if (is_file($file)) {
                 @unlink($file);
