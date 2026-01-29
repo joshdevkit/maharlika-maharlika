@@ -2,8 +2,10 @@
 
 namespace {{ namespace }};
 
+use Maharlika\Http\Request;
 use Maharlika\Routing\Attributes\ApiRoute;
-use Maharlika\Routing\Controller;{{ model_import }}
+use Maharlika\Routing\Controller;
+{{ model_import }}
 
 #[ApiRoute(prefix:"{{ prefix }}")]
 class {{ class }} extends Controller
@@ -11,7 +13,7 @@ class {{ class }} extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         {{ index_body }}
     }
@@ -19,7 +21,7 @@ class {{ class }} extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store()
+    public function store(Request $request)
     {
         {{ store_body }}
     }
@@ -27,7 +29,7 @@ class {{ class }} extends Controller
     /**
      * Display the specified resource.
      */
-    public function show({{ show_parameter }})
+    public function show(Request $request, {{ show_parameter }})
     {
         {{ show_body }}
     }
@@ -43,7 +45,7 @@ class {{ class }} extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy({{ destroy_parameter }})
+    public function destroy(Request $request, {{ destroy_parameter }})
     {
         {{ destroy_body }}
     }

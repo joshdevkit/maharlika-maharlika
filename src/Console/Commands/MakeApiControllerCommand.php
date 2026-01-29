@@ -113,23 +113,23 @@ class MakeApiControllerCommand extends Command
         
         // Generate method bodies based on whether model is used
         if ($modelName && $modelExists) {
-            $indexBody = "return {$modelName}::all();";
-            $storeBody = "//";
+            $indexBody = "\$data = {$modelName}::all();\n        return response()->json(\$data);";
+            $storeBody = "\$data = \$request->all();\n        \$record = {$modelName}::create(\$data);\n        return response()->json(\$record, 201);";
             $showParameter = "{$modelName} {$modelVariable}";
-            $showBody = "return {$modelVariable};";
-            $updateParameter = "{$modelName} {$modelVariable}";
-            $updateBody = "//";
+            $showBody = "return response()->json({$modelVariable});";
+            $updateParameter = "Request \$request, {$modelName} {$modelVariable}";
+            $updateBody = "\$data = \$request->all();\n        {$modelVariable}->update(\$data);\n        return response()->json({$modelVariable});";
             $destroyParameter = "{$modelName} {$modelVariable}";
             $destroyBody = "{$modelVariable}->delete();\n        return response()->json(['message' => 'Deleted successfully']);";
         } else {
-            $indexBody = "//";
-            $storeBody = "//";
+            $indexBody = "// \$data = YourModel::all();\n        // return response()->json(\$data);";
+            $storeBody = "// \$data = \$request->all();\n        // \$record = YourModel::create(\$data);\n        // return response()->json(\$record, 201);";
             $showParameter = "\$id";
-            $showBody = "//";
-            $updateParameter = "\$id";
-            $updateBody = "//";
+            $showBody = "// \$record = YourModel::find(\$id);\n        // return response()->json(\$record);";
+            $updateParameter = "Request \$request, \$id";
+            $updateBody = "// \$data = \$request->all();\n        // \$record = YourModel::find(\$id);\n        // \$record->update(\$data);\n        // return response()->json(\$record);";
             $destroyParameter = "\$id";
-            $destroyBody = "//";
+            $destroyBody = "// \$record = YourModel::find(\$id);\n        // \$record->delete();\n        // return response()->json(['message' => 'Deleted successfully']);";
         }
 
         // Replace placeholders
