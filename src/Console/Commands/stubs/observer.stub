@@ -1,0 +1,105 @@
+<?php
+
+namespace {{ namespace }};
+
+{{ modelNamespace }}
+use Maharlika\Database\Observers\Observer;
+
+class {{ class }} extends Observer
+{
+    /**
+     * Handle the {{ model }} "retrieved" event.
+     */
+    public function retrieved({{ model }} $model): void
+    {
+        //
+    }
+
+    /**
+     * Handle the {{ model }} "creating" event.
+     */
+    public function creating({{ model }} $model): void
+    {
+        //
+    }
+
+    /**
+     * Handle the {{ model }} "created" event.
+     */
+    public function created({{ model }} $model): void
+    {
+        //
+    }
+
+    /**
+     * Handle the {{ model }} "updating" event.
+     */
+    public function updating({{ model }} $model): void
+    {
+        //
+    }
+
+    /**
+     * Handle the {{ model }} "updated" event.
+     */
+    public function updated({{ model }} $model): void
+    {
+        //
+    }
+
+    /**
+     * Handle the {{ model }} "saving" event.
+     */
+    public function saving({{ model }} $model): void
+    {
+        //
+    }
+
+    /**
+     * Handle the {{ model }} "saved" event.
+     */
+    public function saved({{ model }} $model): void
+    {
+        //
+    }
+
+    /**
+     * Handle the {{ model }} "deleting" event.
+     */
+    public function deleting({{ model }} $model): void
+    {
+        //
+    }
+
+    /**
+     * Handle the {{ model }} "deleted" event.
+     */
+    public function deleted({{ model }} $model): void
+    {
+        //
+    }
+
+    /**
+     * Handle the {{ model }} "restoring" event.
+     */
+    public function restoring({{ model }} $model): void
+    {
+        //
+    }
+
+    /**
+     * Handle the {{ model }} "restored" event.
+     */
+    public function restored({{ model }} $model): void
+    {
+        //
+    }
+
+    /**
+     * Handle the {{ model }} "replicating" event.
+     */
+    public function replicating({{ model }} $model): void
+    {
+        //
+    }
+}

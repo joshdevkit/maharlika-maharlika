@@ -31,4 +31,18 @@ class PhpEngine implements EngineInterface
         ob_get_clean();
         throw $e;
     }
+
+    /**
+     * Register a custom directive.
+     * PhpEngine doesn't support directives, so this is a no-op.
+     *
+     * @param string $name
+     * @param callable $handler
+     * @return void
+     */
+    public function directive(string $name, callable $handler): void
+    {
+        // PhpEngine doesn't support custom directives
+        // This method exists only to satisfy the EngineInterface
+    }
 }

@@ -38,7 +38,7 @@ class UrlGenerator
     protected function getSigner(): UrlSigner
     {
         if (!$this->signer) {
-            $key = $_ENV['APP_KEY'] ?? 'default-key';
+             $key = config('app.key') ?? env('APP_KEY');
             if (str_starts_with($key, 'base64:')) {
                 $key = base64_decode(substr($key, 7));
             }

@@ -18,7 +18,9 @@ use Maharlika\View\ViewFactory;
  * 
  * @method static \Maharlika\Contracts\View\ViewInterface make(string $view, array $data = [])
  * @method static bool exists(string $view)
- * @method static render(string $view, array $data = [])
+ * @method static string render(string $view, array $data = [])
+ * @method static void directive(string $name, callable $handler)
+ * @method static void share(string $key, mixed $value)
  * @see \Maharlika\View\ViewFactory
  * @see \Maharlika\Contracts\View\ViewInterface
  */

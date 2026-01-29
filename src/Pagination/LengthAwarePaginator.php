@@ -475,7 +475,7 @@ class LengthAwarePaginator implements \JsonSerializable, \IteratorAggregate, \Co
         }
 
         $view = app(ViewFactoryInterface::class)->make(
-            $view ?? 'pagination::components.length-awareness',
+            $view ?? 'pagination::length-awareness',
             ['paginator' => $this]
         );
 
@@ -492,7 +492,7 @@ class LengthAwarePaginator implements \JsonSerializable, \IteratorAggregate, \Co
         }
 
         $view = app(ViewFactoryInterface::class)->make(
-           'pagination::components.simple',
+           'pagination::simple',
             ['paginator' => $this]
         );
 

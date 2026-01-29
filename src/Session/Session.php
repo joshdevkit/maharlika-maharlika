@@ -18,7 +18,7 @@ class Session implements SessionInterface
     {
         $this->handler = $handler;
         $this->config = array_merge([
-            'name' => config('app.name', 'FRAMEWORK-SESSION'),
+            'name' => config('app.name', 'MAHARLIKA-SESSION'),
             'lifetime' => 120,
             'path' => '/',
             'domain' => null,

@@ -75,11 +75,7 @@ class TemplateEvaluator
             return implode(' ', $styleList);
         };
 
-        // CRITICAL: Extract data variables into template scope
-        // EXTR_SKIP ensures we don't overwrite the helper variables above
         extract($data, EXTR_SKIP);
-
-        // CRITICAL FIX: If there's a component in the data, we need to evaluate 
         // the template in the context of that component so $this refers to it
         if (isset($data['component']) && is_object($data['component'])) {
             // Use a closure to bind the component as $this

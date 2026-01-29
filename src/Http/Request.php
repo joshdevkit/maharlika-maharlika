@@ -3,6 +3,7 @@
 namespace Maharlika\Http;
 
 use Maharlika\Contracts\Http\RequestInterface;
+use Maharlika\Contracts\Http\RouterInterface;
 use Maharlika\Contracts\Session\SessionInterface;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
@@ -106,7 +107,7 @@ class Request extends SymfonyRequest implements RequestInterface
 
     public function routeIs(string $route): bool
     {
-        return app('router')->routeIs($route);
+        return app(RouterInterface::class)->routeIs($route);
     }
 
     /**

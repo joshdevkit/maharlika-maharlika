@@ -36,7 +36,7 @@ use Maharlika\Routing\RoutingServiceProvider;
 use Maharlika\Session\SessionServiceProvider;
 use Maharlika\Socialite\SocialiteServiceProvider;
 use Maharlika\Support\AliasLoader;
-use Maharlika\Translation\TranslationServiceProvider; 
+use Maharlika\Translation\TranslationServiceProvider;
 use Maharlika\Validation\ValidationServiceProvider;
 use Maharlika\View\ViewServiceProvider;
 use Dotenv\Dotenv;
@@ -371,21 +371,28 @@ class Application extends Container implements ApplicationInterface
 
     public function addAliasToView(): void
     {
-        $aliases = [
-            'Auth' => \Maharlika\Facades\Auth::class,
-            'Gate' => \Maharlika\Facades\Gate::class,
-            'View' => \Maharlika\Facades\View::class,
-            'DB' => \Maharlika\Facades\DB::class,
-            'Hash' => \Maharlika\Facades\Hash::class,
-            'Str' => \Maharlika\Support\Str::class,
-            'Route' => \Maharlika\Facades\Route::class,
-            'Log' => \Maharlika\Facades\Log::class,
-            'Mail' => \Maharlika\Facades\Mail::class,
-            'Cache' => \Maharlika\Facades\Cache::class,
-            'Storage' => \Maharlika\Facades\Storage::class,
-            'Carbon' => \Maharlika\Support\Carbon::class,
-            'Lang' => \Maharlika\Facades\Lang::class,
+        $classes = [
+            \Maharlika\Facades\Auth::class,
+            \Maharlika\Facades\Gate::class,
+            \Maharlika\Facades\View::class,
+            \Maharlika\Facades\DB::class,
+            \Maharlika\Facades\Hash::class,
+            \Maharlika\Facades\Route::class,
+            \Maharlika\Facades\Log::class,
+            \Maharlika\Facades\Mail::class,
+            \Maharlika\Facades\Cache::class,
+            \Maharlika\Facades\Storage::class,
+            \Maharlika\Facades\Lang::class,
+            \Maharlika\Support\Str::class,
+            \Maharlika\Support\Carbon::class,
         ];
+
+        $aliases = [];
+
+        foreach ($classes as $class) {
+            $name = class_basename($class);
+            $aliases[$name] = $class;
+        }
 
         $loader = AliasLoader::getInstance($aliases);
         $loader->register();

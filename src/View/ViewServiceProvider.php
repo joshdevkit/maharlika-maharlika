@@ -117,6 +117,10 @@ class ViewServiceProvider extends ServiceProvider
         $this->app->singleton(ViewFactoryInterface::class, function ($c) {
             return $c->get('view');
         });
+        
+        $this->app->singleton(ViewFactory::class, function ($c) {
+            return $c->get('view');
+        });
     }
 
     public function boot(): void

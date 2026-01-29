@@ -21,9 +21,6 @@ class ComponentResolver
 
     /**
      * Add a component alias mapping.
-     * Example: 'mail' => 'Maharlika\\Mail\\Components'
-     * So 'mail.html.button' resolves to 'Maharlika\\Mail\\Components\\Html\\Button'
-     * Or 'mail::html.button' resolves to 'Maharlika\\Mail\\Components\\Html\\Button'
      */
     public function addAlias(string $alias, string $namespace): void
     {
@@ -79,14 +76,6 @@ class ComponentResolver
             
             $fqcn = $aliasNamespace . '\\' . $remainingPath;
             
-            // \Maharlika\Facades\Log::debug("Resolving aliased component", [
-            //     'component' => $component,
-            //     'alias' => $parts[0] ?? null,
-            //     'alias_namespace' => $aliasNamespace,
-            //     'remaining_path' => $remainingPath,
-            //     'fqcn' => $fqcn,
-            //     'exists' => class_exists($fqcn)
-            // ]);
             
             if (class_exists($fqcn)) {
                 $this->cache[$component] = $fqcn;
@@ -96,39 +85,17 @@ class ComponentResolver
 
         $className = $this->componentNameToClassName($component);
         
-        // \Maharlika\Facades\Log::debug("Resolving component", [
-        //     'component' => $component,
-        //     'className' => $className,
-        //     'namespaces' => array_keys($this->namespaces)
-        // ]);
 
         // Try each namespace in order
         foreach ($this->namespaces as $namespace => $path) {
             $fqcn = $namespace . '\\' . $className;
-            
-            // \Maharlika\Facades\Log::debug("Trying component class", [
-            //     'namespace' => $namespace,
-            //     'path' => $path,
-            //     'fqcn' => $fqcn,
-            //     'exists' => class_exists($fqcn)
-            // ]);
 
             if (class_exists($fqcn)) {
                 $this->cache[$component] = $fqcn;
-                // \Maharlika\Facades\Log::debug("Component resolved", [
-                //     'component' => $component,
-                //     'class' => $fqcn
-                // ]);
                 return $fqcn;
             }
         }
 
-        // \Maharlika\Facades\Log::warning("Component not found", [
-        //     'component' => $component,
-        //     'attempted_class' => $className,
-        //     'searched_namespaces' => array_keys($this->namespaces),
-        //     'aliases' => $this->aliasMap
-        // ]);
 
         return null;
     }

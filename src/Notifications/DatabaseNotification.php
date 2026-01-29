@@ -104,8 +104,8 @@ class DatabaseNotification extends Model
     /**
      * Scope a query to only include read notifications.
      *
-     * @param \Maharlika\Database\EloquentBuilder $query
-     * @return \Maharlika\Database\EloquentBuilder
+     * @param \Maharlika\Database\FluentORM\Builder $query
+     * @return \Maharlika\Database\FluentORM\Builder
      */
     public function scopeRead($query)
     {
@@ -115,8 +115,8 @@ class DatabaseNotification extends Model
     /**
      * Scope a query to only include unread notifications.
      *
-     * @param \Maharlika\Database\EloquentBuilder $query
-     * @return \Maharlika\Database\EloquentBuilder
+     * @param \Maharlika\Database\FluentORM\Builder $query
+     * @return \Maharlika\Database\FluentORM\Builder
      */
     public function scopeUnread($query)
     {

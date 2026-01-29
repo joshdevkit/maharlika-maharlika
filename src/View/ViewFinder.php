@@ -9,7 +9,7 @@ class ViewFinder implements ViewFinderInterface
 {
     protected array $locations = [];
     protected array $namespaces = [];
-    protected array $extensions = ['template.php', 'blade.php', 'php', 'html'];
+    protected array $extensions = ['blade.php', 'php', 'html'];
     protected array $cache = [];
 
     public function __construct(array $locations = [])

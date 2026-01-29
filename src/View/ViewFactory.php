@@ -111,4 +111,18 @@ class ViewFactory implements ViewFactoryInterface
     {
         return $this->shared[$key] ?? $default;
     }
+
+    /**
+     * Register a custom directive (proxy to engine).
+     *
+     * @param string $name
+     * @param callable $handler
+     * @return void
+     */
+    public function directive(string $name, callable $handler): void
+    {
+        if (method_exists($this->engine, 'directive')) {
+            $this->engine->directive($name, $handler);
+        }
+    }
 }

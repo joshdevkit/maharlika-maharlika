@@ -14,17 +14,14 @@ class VerifiedMiddleware implements Middleware
     {
         $user = $request->user();
 
-        // ✅ FIXED: If no user, redirect to login (require authentication first)
         if (!$user) {
             return new RedirectResponse('/login');
         }
 
-        // If user model doesn't implement MustVerifyEmail, allow through
         if (!$user instanceof MustVerifyEmail) {
             return $next($request);
         }
 
-        // If user hasn't verified email, redirect to verification page
         if (!$user->hasVerifiedEmail()) {
             return new RedirectResponse('/email/verify');
         }

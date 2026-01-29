@@ -27,23 +27,14 @@ class ScheduleServiceProvider extends ServiceProvider
     protected function loadSchedule(): void
     {
         $schedule = $this->app->get('schedule');
+        $schedulerPath = app()->basePath('app/Schedules/TaskScheduler.php');
 
-        // Try multiple possible locations for schedule definition
-        $schedulerPaths = [
-            app()->basePath('app/Schedules/TaskScheduler.php'),
-        ];
-
-        foreach ($schedulerPaths as $path) {
-            if (file_exists($path)) {
-                $result = require $path;
-                
-                // If it returns a closure, call it with the schedule
-                if ($result instanceof \Closure) {
-                    $result($schedule);
-                }
-                
-                // Only load the first found file
-                return;
+        if (file_exists($schedulerPath)) {
+            $result = require $schedulerPath;
+            
+            // If it returns a closure, call it with the schedule
+            if ($result instanceof \Closure) {
+                $result($schedule);
             }
         }
     }

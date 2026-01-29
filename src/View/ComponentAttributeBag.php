@@ -72,7 +72,6 @@ class ComponentAttributeBag implements ArrayAccess, IteratorAggregate
     /**
      * Conditionally include classes based on boolean values.
      * 
-     * Usage: $attributes->class(['btn', 'btn-primary' => $isPrimary, 'active' => $isActive])
      */
     public function class($classList): self
     {

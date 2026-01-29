@@ -58,4 +58,13 @@ interface RouterInterface
      * Get the current available route name
      */
     public function route(string $name, array $params = []): string;
+
+
+    /**
+     * Check if the current route matches the given name(s)
+     * 
+     * @param string|array $names Route name(s) to check (supports wildcards)
+     * @return bool
+     */
+    public function routeIs(string|array $names): bool;
 }
