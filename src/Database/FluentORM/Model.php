@@ -21,7 +21,8 @@ abstract class Model implements \JsonSerializable, Arrayable
         \Maharlika\Database\Traits\HidesAttributes,
         \Maharlika\Database\Traits\HasEvents,
         \Maharlika\Database\Traits\TracksChanges,
-        \Maharlika\Database\Traits\GuardsAttributes;
+        \Maharlika\Database\Traits\GuardsAttributes,
+        \Maharlika\Database\Traits\HasObservers;
 
 
     protected $table;
