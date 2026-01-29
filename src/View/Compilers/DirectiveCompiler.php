@@ -112,9 +112,12 @@ class DirectiveCompiler
     {
         foreach ($this->customDirectives as $name => $handler) {
             $contents = preg_replace_callback(
-                '/@' . preg_quote($name, '/') . '\b/',
+                '/@' . preg_quote($name, '/') . '(?:\s*\(((?:[^()]+|\((?:[^()]+|\([^()]*\))*\))*)\))?/s',
                 function ($matches) use ($handler) {
-                    return $handler();
+                    // If there's a captured expression, pass it to handler
+                    // Otherwise pass null
+                    $expression = isset($matches[1]) && $matches[1] !== '' ? $matches[1] : null;
+                    return $handler($expression);
                 },
                 $contents
             );
