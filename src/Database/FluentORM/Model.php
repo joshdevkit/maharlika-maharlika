@@ -95,6 +95,13 @@ abstract class Model implements \JsonSerializable, Arrayable
     protected static $modelsShouldPreventLazyLoading = false;
 
     /**
+     * The callback that is responsible for handling lazy loading violations.
+     *
+     * @var callable|null
+     */
+    protected static $lazyLoadingViolationCallback;
+
+    /**
      * Determine if discarding guarded attribute fills is disabled.
      *
      * @return bool
@@ -166,7 +173,7 @@ abstract class Model implements \JsonSerializable, Arrayable
      * @param  bool  $prevent
      * @return void
      */
-    public static function preventLazyLoading(bool $prevent = false): void
+    public static function preventLazyLoading(bool $prevent = true): void
     {
         static::$modelsShouldPreventLazyLoading = $prevent;
     }
@@ -180,6 +187,17 @@ abstract class Model implements \JsonSerializable, Arrayable
     public static function handleDiscardedAttributeViolationUsing(?callable $callback): void
     {
         static::$discardedAttributeViolationCallback = $callback;
+    }
+
+    /**
+     * Set the callback to handle lazy loading violations.
+     *
+     * @param  callable|null  $callback
+     * @return void
+     */
+    public static function handleLazyLoadingViolationUsing(?callable $callback): void
+    {
+        static::$lazyLoadingViolationCallback = $callback;
     }
 
     public function __construct(array $attributes = [])
@@ -280,7 +298,6 @@ abstract class Model implements \JsonSerializable, Arrayable
 
     /**
      * Fill the model with an array of attributes.
-     * Mimics Laravel's mass assignment protection.
      */
     public function fill(array $attributes)
     {
@@ -950,6 +967,7 @@ abstract class Model implements \JsonSerializable, Arrayable
      */
     public function __get(string $key)
     {
+        // Check for missing attributes first
         if (static::preventsAccessingMissingAttributes()) {
             if (!$this->hasAttribute($key) && !method_exists($this, $key) && !isset($this->relations[$key])) {
                 throw new \LogicException(sprintf(
@@ -960,15 +978,51 @@ abstract class Model implements \JsonSerializable, Arrayable
             }
         }
 
+        // Return attribute if it exists
         if ($this->hasAttribute($key)) {
             return $this->getAttribute($key);
         }
 
+        // Return already loaded relation
         if (array_key_exists($key, $this->relations)) {
             return $this->relations[$key];
         }
 
+        // Check if it's a relationship method
+        if (method_exists($this, $key)) {
+            // Prevent lazy loading if enabled
+            if (static::preventsLazyLoading()) {
+                $this->handleLazyLoadingViolation($key);
+            }
+
+            // Track relationship access for N+1 detection
+            $this->trackRelationshipAccess($key);
+
+            // Load the relationship
+            return $this->getRelationshipFromMethod($key);
+        }
+
         return null;
+    }
+
+    /**
+     * Handle lazy loading violation
+     */
+    protected function handleLazyLoadingViolation(string $key): void
+    {
+        if (isset(static::$lazyLoadingViolationCallback)) {
+            call_user_func(static::$lazyLoadingViolationCallback, $this, $key);
+            return;
+        }
+
+        throw new \RuntimeException(sprintf(
+            'Attempted to lazy load [%s] on model [%s] but lazy loading is disabled. ' .
+            'Use eager loading instead: %s::with(\'%s\')->get()',
+            $key,
+            get_class($this),
+            class_basename(static::class),
+            $key
+        ));
     }
 
 

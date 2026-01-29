@@ -158,7 +158,7 @@ class Validation implements ValidatorInterface
             }
 
             if (is_string($rule)) {
-                $ruleObject = $this->createRuleFromString($rule);
+                $ruleObject = $this->createRuleFromString($rule, $field);
                 if ($ruleObject && !$ruleObject->passes($field, $value, $this->data)) {
                     $ruleName = $this->extractRuleName($rule);
                     $message = $this->getMessage($field, $ruleName, $ruleObject, $rule);
@@ -180,7 +180,7 @@ class Validation implements ValidatorInterface
         $ruleObjects = [];
 
         foreach ($rules as $rule) {
-            $ruleObjects[] = $this->createRuleFromString($rule) ?? $rule;
+            $ruleObjects[] = $this->createRuleFromString($rule, $field) ?? $rule;
         }
 
         $this->validateWithRuleObjects($field, $ruleObjects);
@@ -285,7 +285,7 @@ class Validation implements ValidatorInterface
         return $parameters;
     }
 
-    protected function createRuleFromString(string $rule): ?Rule
+    protected function createRuleFromString(string $rule, string $field): ?Rule
     {
         if ($rule === 'nullable' || $rule === 'sometimes') {
             return null;
@@ -306,7 +306,11 @@ class Validation implements ValidatorInterface
         }
 
         if (strtolower($ruleName) === 'unique') {
-            return $this->createUniqueRule($parameters);
+            return $this->createUniqueRule($parameters, $field);
+        }
+
+        if (strtolower($ruleName) === 'exists') {
+            return $this->createExistsRule($parameters, $field);
         }
 
         if (strtolower($ruleName) === 'required_with') {
@@ -316,21 +320,30 @@ class Validation implements ValidatorInterface
         return !empty($parameters) ? new $ruleClass(...$parameters) : new $ruleClass();
     }
 
-    protected function createUniqueRule(array $parameters): Rule
+    protected function createUniqueRule(array $parameters, string $field): Rule
     {
         $table = $parameters[0] ?? null;
-        $column = $parameters[1] ?? null;
+        $column = $parameters[1] ?? null; // Can be null for auto-inference
         $ignoreValue = $parameters[2] ?? null;
         $ignoreColumn = $parameters[3] ?? null;
 
         $ruleClass = $this->mappedRules['unique'];
-        $uniqueRule = new $ruleClass($table, $column ?? '');
+        $uniqueRule = new $ruleClass($table, $column);
 
         if ($ignoreValue !== null) {
             $uniqueRule->ignore($ignoreValue, $ignoreColumn);
         }
 
         return $uniqueRule;
+    }
+
+    protected function createExistsRule(array $parameters, string $field): Rule
+    {
+        $table = $parameters[0] ?? null;
+        $column = $parameters[1] ?? null; // Can be null for auto-inference
+
+        $ruleClass = $this->mappedRules['exists'];
+        return new $ruleClass($table, $column);
     }
 
     protected function extractRuleName(string $rule): string

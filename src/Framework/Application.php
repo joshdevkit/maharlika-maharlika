@@ -36,7 +36,7 @@ use Maharlika\Routing\RoutingServiceProvider;
 use Maharlika\Session\SessionServiceProvider;
 use Maharlika\Socialite\SocialiteServiceProvider;
 use Maharlika\Support\AliasLoader;
-use Maharlika\Translation\TranslationServiceProvider; // NEW
+use Maharlika\Translation\TranslationServiceProvider; 
 use Maharlika\Validation\ValidationServiceProvider;
 use Maharlika\View\ViewServiceProvider;
 use Dotenv\Dotenv;
