@@ -10,6 +10,19 @@ use Maharlika\View\Engines\TemplateEngine;
 
 class TemplateEvaluator
 {
+    protected string $cachePath;
+
+    public function __construct(?string $cachePath = null)
+    {
+        // Use provided cache path or default to storage/views
+        $this->cachePath = $cachePath ?? app()->basePath('storage/views');
+        
+        // Ensure cache directory exists
+        if (!is_dir($this->cachePath)) {
+            mkdir($this->cachePath, 0755, true);
+        }
+    }
+
     public function evaluate(string $compiled, array $data, TemplateEngine $engine): string
     {
         $__sections = [];
@@ -74,21 +87,19 @@ class TemplateEvaluator
                 // Extract all data into this scope
                 extract($data, EXTR_SKIP);
                 
-                // Write compiled template to a temporary file
-                $tempFile = sys_get_temp_dir() . '/blade_' . md5($compiled . uniqid('', true)) . '.php';
-                file_put_contents($tempFile, $compiled);
+                // Write compiled template to cache file
+                $cacheFile = $this->getCacheFilePath($compiled);
+                file_put_contents($cacheFile, $compiled);
 
                 ob_start();
 
                 try {
-                    include $tempFile;
+                    include $cacheFile;
                 } catch (\Throwable $e) {
                     ob_get_clean();
-                    @unlink($tempFile);
                     throw $e;
                 }
 
-                @unlink($tempFile);
                 return ob_get_clean();
             };
             
@@ -98,21 +109,19 @@ class TemplateEvaluator
             
         } else {
             // No component, evaluate normally
-            // Write compiled template to a temporary file
-            $tempFile = sys_get_temp_dir() . '/blade_' . md5($compiled . uniqid('', true)) . '.php';
-            file_put_contents($tempFile, $compiled);
+            // Write compiled template to cache file
+            $cacheFile = $this->getCacheFilePath($compiled);
+            file_put_contents($cacheFile, $compiled);
 
             ob_start();
 
             try {
-                include $tempFile;
+                include $cacheFile;
             } catch (\Throwable $e) {
                 ob_get_clean();
-                @unlink($tempFile);
                 throw $e;
             }
 
-            @unlink($tempFile);
             $output = ltrim(ob_get_clean());
         }
 
@@ -122,12 +131,11 @@ class TemplateEvaluator
             $parentSource = file_get_contents($parentPath);
             $parentCompiled = $engine->compile($parentSource);
 
-            $parentTempFile = sys_get_temp_dir() . '/blade_' . md5($parentCompiled . uniqid('', true)) . '.php';
-            file_put_contents($parentTempFile, $parentCompiled);
+            $parentCacheFile = $this->getCacheFilePath($parentCompiled);
+            file_put_contents($parentCacheFile, $parentCompiled);
 
             ob_start();
-            include $parentTempFile;
-            @unlink($parentTempFile);
+            include $parentCacheFile;
 
             $output = ltrim(ob_get_clean());
         }
@@ -137,5 +145,40 @@ class TemplateEvaluator
         }
 
         return $output;
+    }
+
+    /**
+     * Get cache file path for compiled template
+     */
+    protected function getCacheFilePath(string $compiled): string
+    {
+        $hash = md5($compiled);
+        return $this->cachePath . DIRECTORY_SEPARATOR . 'compiled_' . $hash . '.php';
+    }
+
+    /**
+     * Clear all cached compiled views
+     */
+    public function clearCache(): void
+    {
+        if (!is_dir($this->cachePath)) {
+            return;
+        }
+
+        $files = glob($this->cachePath . '/compiled_*.php');
+        
+        foreach ($files as $file) {
+            if (is_file($file)) {
+                @unlink($file);
+            }
+        }
+    }
+
+    /**
+     * Get the cache directory path
+     */
+    public function getCachePath(): string
+    {
+        return $this->cachePath;
     }
 }

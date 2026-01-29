@@ -22,22 +22,20 @@ class TemplateEngine implements EngineInterface
     protected ControlStructureCompiler $controlStructureCompiler;
     protected LayoutCompiler $layoutCompiler;
     protected TemplateEvaluator $evaluator;
+    protected string $cachePath;
 
     public function __construct(string $cachePath, ?ComponentResolver $resolver = null)
     {
-        // Log::debug("TemplateEngine constructor", [
-        //     'has_resolver' => $resolver !== null,
-        //     'resolver_namespaces' => $resolver ? $resolver->getNamespaces() : []
-        // ]);
+        $this->cachePath = $cachePath;
         
         $this->componentCompiler = new ComponentCompiler($resolver);
         $this->directiveCompiler = new DirectiveCompiler();
         $this->echoCompiler = new EchoCompiler();
         $this->controlStructureCompiler = new ControlStructureCompiler();
         $this->layoutCompiler = new LayoutCompiler();
-        $this->evaluator = new TemplateEvaluator();
         
-        // Log::debug("ComponentCompiler created with resolver");
+        // Pass cache path to evaluator
+        $this->evaluator = new TemplateEvaluator($cachePath);
     }
 
     /**
@@ -72,9 +70,7 @@ class TemplateEngine implements EngineInterface
 
         // CRITICAL: Compile components BEFORE storing escaped syntax
         // This allows components to see raw {{ }} in attributes
-        // Log::debug("Starting component compilation");
         $contents = $this->componentCompiler->compile($contents);
-        // Log::debug("Component compilation complete");
 
         // NOW store escaped syntax (protects @{{ for JS frameworks)
         $contents = $this->echoCompiler->storeEscapedSyntax($contents);
@@ -95,5 +91,21 @@ class TemplateEngine implements EngineInterface
         $contents = $this->echoCompiler->restoreEscapedSyntax($contents);
         
         return $contents;
+    }
+
+    /**
+     * Clear the compiled view cache
+     */
+    public function clearCache(): void
+    {
+        $this->evaluator->clearCache();
+    }
+
+    /**
+     * Get the cache path
+     */
+    public function getCachePath(): string
+    {
+        return $this->cachePath;
     }
 }
