@@ -7,7 +7,7 @@ use Maharlika\Support\Str;
 
 class ApiToken extends Model
 {
-    protected $table = 'api_tokens';
+    protected $table = 'personal_access_token';
 
     protected $fillable = [
         'user_id',

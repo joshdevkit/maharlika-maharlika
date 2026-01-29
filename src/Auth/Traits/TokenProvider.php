@@ -6,7 +6,7 @@ use DateTimeInterface;
 use Maharlika\Auth\ApiToken;
 use Maharlika\Support\Str;
 
-trait HasApiTokens
+trait TokenProvider
 {
     /**
      * Get all API tokens for the user.

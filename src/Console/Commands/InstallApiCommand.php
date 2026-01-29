@@ -23,7 +23,7 @@ class InstallApiCommand extends Command
         try {
             // Step 1: Check if migration already exists
             $migrationPath = $this->getMigrationsPath();
-            $existingMigration = $this->findExistingMigration($migrationPath, 'create_api_tokens_table');
+            $existingMigration = $this->findExistingMigration($migrationPath, 'create_personal_access_token_table');
 
             if ($existingMigration) {
                 $this->io->warning("Migration already exists: {$existingMigration}");
@@ -39,12 +39,47 @@ class InstallApiCommand extends Command
             }
 
             $this->io->success('API Token Authentication installed successfully!');
+            
+            // Display next steps
+            $this->displayNextSteps();
 
             return Command::SUCCESS;
         } catch (\Exception $e) {
             $this->io->error("Installation failed: " . $e->getMessage());
             return Command::FAILURE;
         }
+    }
+
+    /**
+     * Display next steps to the user
+     */
+    protected function displayNextSteps(): void
+    {
+        $this->io->section('Next Steps');
+        
+        $this->io->writeln([
+            '',
+            '<info>Step 1:</info> Run the migration',
+            '  <comment>php maharlika migrate</comment>',
+            '',
+            '<info>Step 2:</info> Add the TokenProvider trait to your User model',
+            '  Open <comment>app/Models/User.php</comment> and add:',
+            '',
+            '  <comment>use Maharlika\Auth\TokenProvider;</comment>',
+            '',
+            '  <comment>class User extends Model</comment>',
+            '  <comment>{</comment>',
+            '      <comment>use TokenProvider;  // Add this line</comment>',
+            '',
+            '      <comment>// ... rest of your User model</comment>',
+            '  <comment>}</comment>',
+            '',
+            '<info>Step 3:</info> You\'re ready! Create tokens like this:',
+            '  <comment>$user = User::find(1);</comment>',
+            '  <comment>$token = $user->createToken(\'my-app-token\');</comment>',
+            '  <comment>echo $token->plainTextToken;</comment>',
+            '',
+        ]);
     }
 
     /**
@@ -76,7 +111,7 @@ class InstallApiCommand extends Command
         }
 
         $timestamp = date('Y_m_d_His');
-        $filename = "{$timestamp}_create_api_tokens_table.php";
+        $filename = "{$timestamp}_create_personal_access_token_table.php";
         $filepath = $path . '/' . $filename;
 
         $stub = $this->getStub();
@@ -84,7 +119,6 @@ class InstallApiCommand extends Command
 
         $this->io->writeln("  <info>✓</info> Created migration: {$filename}");
     }
-
 
     protected function getStub(): string
     {
@@ -96,7 +130,4 @@ class InstallApiCommand extends Command
 
         return "";
     }
-
-
-    
 }
