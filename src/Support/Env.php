@@ -44,7 +44,8 @@ class Env
     {
         $value = $_ENV[$key] ?? getenv($key);
 
-        if ($value === false) {
+        // Return default if not found OR empty string
+        if ($value === false || $value === '') {
             return $default;
         }
 

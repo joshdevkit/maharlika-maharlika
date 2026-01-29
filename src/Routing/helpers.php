@@ -42,18 +42,8 @@ if (!function_exists('public_path')) {
 }
 
 if (!function_exists('env')) {
-    /**
-     * Get environment variable using the Env class.
-     */
     function env(string $key, mixed $default = null): mixed
     {
-        // Lazy-load support class if not already loaded
-        static $env;
-
-        if ($env === null) {
-            $env = new \Maharlika\Support\Env();
-        }
-
-        return $env::get($key, $default);
+        return \Maharlika\Support\Env::get($key, $default);
     }
 }

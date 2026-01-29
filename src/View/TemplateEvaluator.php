@@ -153,7 +153,7 @@ class TemplateEvaluator
     protected function getCacheFilePath(string $compiled): string
     {
         $hash = md5($compiled);
-        return $this->cachePath . DIRECTORY_SEPARATOR . 'compiled_' . $hash . '.php';
+        return $this->cachePath . DIRECTORY_SEPARATOR . 'cache_' . $hash . '.php';
     }
 
     /**
@@ -165,7 +165,7 @@ class TemplateEvaluator
             return;
         }
 
-        $files = glob($this->cachePath . '/compiled_*.php');
+        $files = glob($this->cachePath . '/cache_*.php');
         
         foreach ($files as $file) {
             if (is_file($file)) {
