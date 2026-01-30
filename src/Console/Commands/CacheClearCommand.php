@@ -15,7 +15,7 @@ class CacheClearCommand extends Command
     {
         $this
             ->setName('cache:clear')
-            ->setDescription('Clear all application cache files');
+            ->setDescription('Clear all application cache files. [cache:data] [compiled:view]');
     }
 
     public function handle(InputInterface $input, OutputInterface $output): int
@@ -25,12 +25,24 @@ class CacheClearCommand extends Command
         try {
             $cachePath = storage_path('framework/cache');
 
-            if (! is_dir($cachePath)) {
-                $this->io->info('Cache directory does not exist.');
-                return self::SUCCESS;
+            // Clear general cache
+            if (is_dir($cachePath)) {
+                $this->clearDirectory($cachePath);
+                $this->io->success('General cache cleared');
+            } else {
+                $this->io->error('Cache directory does not exist.');
             }
 
-            $this->clearDirectory($cachePath);
+            // Clear compiled views using the engine's clearCache method
+            try {
+                $engine = app('view.engine.template');
+                if (method_exists($engine, 'clearCache')) {
+                    $engine->clearCache();
+                    $this->io->success('Compiled views cache cleared');
+                }
+            } catch (\Throwable $e) {
+                $this->io->warning('Could not clear view cache: ' . $e->getMessage());
+            }
 
             $this->io->success('Application cache cleared successfully.');
             return self::SUCCESS;

@@ -14,8 +14,7 @@ class TemplateEvaluator
 
     public function __construct(?string $cachePath = null)
     {
-        // Use provided cache path or default to storage/views
-        $this->cachePath = $cachePath ?? app()->basePath('storage/views');
+        $this->cachePath = $cachePath ?? app()->basePath('storage/framework/cache/views');
 
         // Ensure cache directory exists
         if (!is_dir($this->cachePath)) {

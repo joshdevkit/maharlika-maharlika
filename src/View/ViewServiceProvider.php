@@ -89,7 +89,7 @@ class ViewServiceProvider extends ServiceProvider
         // Register Template Engine with ComponentResolver
         $this->app->singleton('view.engine.template', function ($c) {
             $app = $c->get('app');
-            $cachePath = $app->basePath('storage/views');
+            $cachePath = $app->basePath('storage/framework/cache/views');
 
             // Get the component resolver
             $resolver = $c->has('view.component.resolver')
